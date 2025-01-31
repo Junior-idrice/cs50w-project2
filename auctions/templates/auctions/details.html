@@ -1,0 +1,65 @@
+{%extends 'auctions/layout.html'%}
+
+
+{%block body%}
+ <h1>{{listing.title}}</h1>
+ <p>{{listing.description}}</p>
+ <p>
+    current bid: ${{latest}}
+ </p>
+  {%if listing.thumbnail%}
+   <img src="{{listing.thumbnail.url}}" alt="listing.title" width="150px">
+  {%endif%}
+  {%if request.user.is_authenticated%}
+       <form method="POST" action="{% url 'addto' listing.title%}">
+            {%csrf_token%}
+            <button type="submit">
+              {%if is_in_watchlist %}
+                 Remove from watchlist
+              {%else%}
+                 add to watchlist
+               {%endif%}
+            </button>
+         </form>  <hr>
+         {%if listing.is_active%}
+            {%if messages %}
+              {%for message in messages%}
+                {{message}}
+              {%endfor%}
+            {%endif%}
+            <form method="POST" action="{% url 'bid_on_listing' listing.title%}">
+               {%csrf_token%}
+               <input type="number" name="amount" placeholder="enter bid">
+               <button type="submit">Enter bid</button>
+            </form>
+            <br>
+           {%if user == listing.created_by %}
+            <form method="POST" action="{% url 'close' listing.title%}">
+               {%csrf_token%}
+               <button type="submit">Close bid</button>
+            {%endif%}
+            <hr>
+         {%endif%}
+            {%if not listing.is_active%}
+               <h2>Listing close</h2><hr>
+               {%if listing.winner == request.user %}
+                  <h2>Congrates <b>{{listing.winner.username}}</b>, you got it </h2><br>
+               {%else%}
+                   <p>The winner is: {{listing.winner.username}}</p>
+               {%endif%}
+             {%endif%}
+         
+         </form>
+         <h3>Comments</h3>
+         <form method="POST">
+            <ul>
+               {%for comment in comments%}
+                <li><strong>{{comment.user.username}}</strong>: {{comment.text}} {{comment.created_at}}</li>
+               {%endfor%}
+            </ul>
+            {%csrf_token%}
+            {{comment_form.as_p}}
+            <button type="submit">Add a comment</button>
+         </form>
+   {%endif%}
+{%endblock%}
